@@ -1,74 +1,62 @@
+import axios from "axios"
 import { useReducer, type JSX } from "react"
-import styles from "./app.module.css"
-import axios from "axios";
 
-
-const ACTION_TYPES = {
-    Fetch_start: "Fetch_start",
-    Fetch_success: "Fetch_success",
-    Fetch_error: "Fetch_error"
-
+const ACTION_TYPE = {
+    Fetch_START: "Fetch_Start",
+    Fetch_Success: "Fetch_Success",
+    Fetch_ERROR: "Fetch_error"
 }
 
-interface RootState {
-  loading: boolean;
-  fact: string;
-  error: boolean;
+interface rootstate {
+    loading: boolean,
+    data: string,
+    error: boolean,
 }
 
-const initalState: RootState = {
-  loading: false,
-  fact: '',
-  error: false,
-};
-
-const factReducer = (state: RootState, action: { type: string; data: string }): RootState => {
-  switch(action.type) {
-    case ACTION_TYPES.Fetch_start:
-      return { ...state, loading: true, fact: '', error: false };
-    case ACTION_TYPES.Fetch_success:
-      return { ...state, loading: false, fact: action.data, error: false };
-    case ACTION_TYPES.Fetch_error:
-      return { ...state, loading: false, fact: '', error: true };
-    default:
-      return state;
-  }
+const initalstate: rootstate = {
+    loading: true,
+    data: '',
+    error: false
 }
 
-const App = (): JSX.Element => {
-    const [state, dispatch] = useReducer(factReducer, initalState);
+const Reducer = (state: rootstate, action: { type: string, data: string }): rootstate => {
 
-    ////initalState مقدار اولیه,نقطه شروع
-    ///state داده ای که باید کنترل بشه,وضعیت فعلی
-    ///reducer یک تابع با دو مقدار state,action      state وضعیت فعلی /////   action پیام ارسال شده
-    /////////////////////////////////////////////////////////
-    ///dispatch پیک و ارسال کننده action به reducer
-    ///action در state ابجکت توضیح تغییر 
-
-    const handlerFact = async () => {
-        dispatch({ type: ACTION_TYPES.Fetch_start, data: '' });
-        try {
-            const res = await axios.get("https://catfact.ninja/fact");
-            dispatch({ type: ACTION_TYPES.Fetch_success, data: res.data.fact });
-        } catch (error) {
-            dispatch({ type: ACTION_TYPES.Fetch_error, data: '' });
-            console.log(error);
-        }
+    switch (action.type) {
+        case ACTION_TYPE.Fetch_START:
+            return { ...state, loading: true, data: "", error: false };
+        case ACTION_TYPE.Fetch_Success:
+            return { ...state, loading: false, data: action.data, error: false }
+        case ACTION_TYPE.Fetch_ERROR:
+            return { ...state, loading: false, data: '', error: true }
+        default:
+            return state;
     }
 
-    return (
-        <div className={styles.center}>
-            <button onClick={handlerFact}>
-                {state.loading ? "is loading..." : "fetch cat Fatc"}
-            </button>
-            <p>  {state.error && (<p>error</p>)}  </p>
-            <h1>{state.fact}</h1>
-        </div>
-
-    )
-
 }
 
 
+const Test = (): JSX.Element => {
 
-export default App
+    const [state, dispatch] = useReducer(Reducer, initalstate)
+    const getData = async () => {
+        dispatch({ type: ACTION_TYPE.Fetch_START, data: "" })
+        try {
+            const res = await axios.get("https://catfact.ninja/fact")
+            dispatch({ type: ACTION_TYPE.Fetch_Success, data: res.data.fact })
+        } catch (err) {
+            dispatch({ type: ACTION_TYPE.Fetch_ERROR, data: "" })
+            console.log(err)
+        }
+    }
+    return (
+        <div>
+            <button className="bg-amber-600 cursor-pointer" onClick={getData}>
+                {state.loading ? "is loading..." : "show Data"}
+            </button>
+            {state.error && (<p>error</p>)}
+            <p>{state.data}</p>
+        </div>
+    )
+}
+
+export default Test
